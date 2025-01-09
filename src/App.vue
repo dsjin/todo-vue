@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ConfirmDialog from 'primevue/confirmdialog'
+import ScrollPanel from 'primevue/scrollpanel'
+import ScrollTop from 'primevue/scrolltop'
 import Toast from 'primevue/toast'
 import { RouterView } from 'vue-router'
 // import { RouterLink, RouterView } from 'vue-router'
@@ -24,9 +27,20 @@ import { RouterView } from 'vue-router'
       </nav>
     </div>
   </header> -->
-
   <RouterView />
   <Toast />
+  <ConfirmDialog :draggable="false" />
+  <ScrollTop
+    target="window"
+    icon="pi pi-arrow-up"
+    :threshold="100"
+    :buttonProps="{
+      severity: 'contrast',
+      raised: true,
+      rounded: true,
+      class: 'transition-all',
+    }"
+  />
 </template>
 
 <style scoped>
