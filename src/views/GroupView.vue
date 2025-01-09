@@ -81,9 +81,9 @@ onMounted(() => {
 })
 </script>
 <template>
-  <div class="lg:px-60 px-10">
+  <div class="lg:px-60 px-10 py-5">
     <div class="flex flex-col w-full">
-      <div class="flex justify-between items-center w-full mb-3">
+      <div class="flex justify-between items-center w-full mb-5">
         <h1 class="text-6xl">Group</h1>
         <Button
           icon="pi pi-plus"
