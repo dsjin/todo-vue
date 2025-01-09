@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { supabase } from '@/lib/superbaseClient'
 import type { AuthChangeEvent, AuthSession, User } from '@supabase/supabase-js'
-import Button from 'primevue/button'
 import { onMounted, ref, type Ref } from 'vue'
-import { useRouter } from 'vue-router'
 import LandingView from './LandingView.vue'
 import GroupView from './GroupView.vue'
-const router = useRouter()
 const isAuthenticated: Ref<boolean> = ref(false)
 
 onMounted(() => {
