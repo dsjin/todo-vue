@@ -5,7 +5,6 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Menu from 'primevue/menu'
-import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { ref, type Ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -19,7 +18,6 @@ const emits = defineEmits<{
   onDeleted: [number]
   onEdited: [number, string]
 }>()
-const confirm = useConfirm()
 const toast = useToast()
 const router = useRouter()
 const menu: Ref<InstanceType<typeof Menu> | undefined> = ref()
@@ -41,51 +39,16 @@ const items = ref([
         label: 'Delete',
         icon: 'pi pi-trash',
         command: () => {
-          deleteConfirm()
+          deleteDialogVisible.value = true
         },
       },
     ],
   },
 ])
 const editDialogVisible = ref(false)
+const deleteDialogVisible = ref(false)
 const toggleMenu = (event: MouseEvent) => {
   menu.value?.toggle(event)
-}
-const deleteConfirm = () => {
-  confirm.require({
-    message: 'Do you want to delete this group?',
-    header: 'Action',
-    icon: 'pi pi-info-circle',
-    rejectLabel: 'Cancel',
-    rejectProps: {
-      label: 'Cancel',
-      severity: 'secondary',
-      outlined: true,
-    },
-    acceptProps: {
-      label: 'Delete',
-      severity: 'danger',
-    },
-    accept: async () => {
-      try {
-        const { error } = await supabase
-          .from('groups')
-          .delete()
-          .eq('id', props.value.id)
-        if (error) {
-          throw new Error(error.message)
-        }
-        emits('onDeleted', props.value.id)
-      } catch (e: any) {
-        toast.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: e.message,
-          life: 3000,
-        })
-      }
-    },
-  })
 }
 const editClicked = async () => {
   modalBusy.value = true
@@ -101,6 +64,27 @@ const editClicked = async () => {
     }
     emits('onEdited', props.value.id, editName.value)
     editDialogVisible.value = false
+  } catch (e: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: e.message,
+      life: 3000,
+    })
+  }
+  modalBusy.value = false
+}
+const deleteClicked = async () => {
+  modalBusy.value = true
+  try {
+    const { error } = await supabase
+      .from('groups')
+      .delete()
+      .eq('id', props.value.id)
+    if (error) {
+      throw new Error(error.message)
+    }
+    emits('onDeleted', props.value.id)
   } catch (e: any) {
     toast.add({
       severity: 'error',
@@ -180,6 +164,40 @@ const editClicked = async () => {
         type="button"
         label="Save"
         @click="editClicked"
+        :disabled="modalBusy"
+      />
+    </div>
+  </Dialog>
+  <Dialog
+    v-model:visible="deleteDialogVisible"
+    modal
+    header="Delete Group"
+    :style="{ width: '25rem' }"
+    closable
+    :close-button-props="{
+      severity: 'secondary',
+      rounded: true,
+      text: true,
+      disabled: modalBusy,
+    }"
+    :draggable="false"
+  >
+    <span class="text-surface-500 dark:text-surface-400 block mb-8">
+      Do you want to delete this group?
+    </span>
+    <div class="flex justify-end gap-2">
+      <Button
+        type="button"
+        label="Cancel"
+        severity="secondary"
+        @click="deleteDialogVisible = false"
+        :disabled="modalBusy"
+      />
+      <Button
+        type="button"
+        label="Delete"
+        severity="danger"
+        @click="deleteClicked"
         :disabled="modalBusy"
       />
     </div>

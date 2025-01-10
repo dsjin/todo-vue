@@ -44,6 +44,14 @@ const assignGroupList = async (
   } else {
     groups.value = [...groups.value, ...groupItems]
   }
+  if (groupItems.length === 0) {
+    toast.add({
+      severity: 'info',
+      summary: 'Info',
+      detail: 'All groups retrieved',
+      life: 3000,
+    })
+  }
   busy.value = false
 }
 const debouncedAssignGroupList = debounce(
