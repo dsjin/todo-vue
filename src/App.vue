@@ -25,7 +25,7 @@ onMounted(() => {
 <template>
   <Navbar v-if="isAuthenticated" />
   <RouterView />
-  <Toast />
+  <Toast :breakpoints="{ '960px': { width: '75vw' } }" />
   <ConfirmDialog :draggable="false" />
   <ScrollTop
     target="window"
