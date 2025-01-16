@@ -23,18 +23,31 @@ onMounted(() => {
 <template>
   <div id="LandingPage">
     <h1>TODO LIST</h1>
-    <Button
-      v-if="!userInfo"
-      @click="
-        () =>
-          router.push({
-            path: '/login',
-          })
-      "
-    >
-      Login
-    </Button>
-    <Button v-else @click="() => supabase.auth.signOut()"> Logout </Button>
+    <div class="flex">
+      <Button
+        v-if="!userInfo"
+        @click="
+          () =>
+            router.push({
+              path: '/login',
+            })
+        "
+      >
+        Login
+      </Button>
+      <Button
+        v-if="!userInfo"
+        @click="
+          () =>
+            router.push({
+              path: '/register',
+            })
+        "
+      >
+        Register
+      </Button>
+    </div>
+    <!-- <Button v-else @click="() => supabase.auth.signOut()"> Logout </Button> -->
   </div>
 </template>
 

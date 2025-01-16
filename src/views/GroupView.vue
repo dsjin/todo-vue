@@ -67,6 +67,7 @@ const fetchGroups = async (
     .select('id, uuid, name, user_id, created_at, updated_at')
     .range(from, to)
     .order('created_at')
+    .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
   return data
     ? data.map(value => {
         return {
