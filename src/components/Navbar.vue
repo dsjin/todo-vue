@@ -4,7 +4,9 @@ import Avatar from 'primevue/avatar'
 import Menu from 'primevue/menu'
 import Menubar from 'primevue/menubar'
 import { ref, type Ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const menu: Ref<InstanceType<typeof Menu> | undefined> = ref()
 const items = ref([
   {
@@ -15,6 +17,7 @@ const items = ref([
         icon: 'pi pi-sign-out',
         command: () => {
           supabase.auth.signOut()
+          router.push('/')
         },
       },
     ],
