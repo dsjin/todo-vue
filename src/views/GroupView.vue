@@ -84,13 +84,28 @@ const fetchGroups = async (
 const createGroupClicked = async () => {
   createModalBusy.value = true
   try {
-    const { error } = await supabase.from('groups').insert({
-      name: newGroupName.value,
-      user_id: (await supabase.auth.getUser()).data.user?.id,
-    })
+    const { data, error } = await supabase
+      .from('groups')
+      .upsert({
+        name: newGroupName.value,
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+      })
+      .select('id, uuid, name, user_id, created_at, updated_at')
+      .single()
     if (error) {
       throw new Error(error.message)
     }
+    groups.value = [
+      ...groups.value,
+      {
+        id: data.id,
+        uuid: data.uuid,
+        name: data.name,
+        userId: data.user_id,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      },
+    ]
     createDialogVisible.value = false
     newGroupName.value = ''
   } catch (e: any) {
