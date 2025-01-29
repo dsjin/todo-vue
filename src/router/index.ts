@@ -33,7 +33,28 @@ const router = createRouter({
       name: 'login',
       component: () => import('../views/LoginView.vue'),
     },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
+    },
+    {
+      path: '/group/:groupId',
+      name: 'group-detail',
+      component: () => import('../views/GroupDetailView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
   ],
+  scrollBehavior() {
+    return new Promise(resolve => {
+      resolve({
+        left: 0,
+        top: 0,
+      })
+    })
+  },
 })
 
 router.beforeEach(
