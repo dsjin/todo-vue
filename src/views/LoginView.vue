@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, type Ref } from 'vue'
 import Card from 'primevue/card'
 import InputGroup from 'primevue/inputgroup'
 import InputGroupAddon from 'primevue/inputgroupaddon'
@@ -12,6 +11,7 @@ import { useForm } from 'vee-validate'
 import loginValidateSchema from '@/assets/validateSchema/login'
 import type { Login } from '@/assets/types/login'
 import Message from 'primevue/message'
+import { useTemplateRef } from 'vue'
 
 const { defineField, errors, handleSubmit } = useForm<Login>({
   validationSchema: loginValidateSchema,
@@ -19,18 +19,14 @@ const { defineField, errors, handleSubmit } = useForm<Login>({
 
 const [email, emailAttrs] = defineField('email')
 const [password, passwordAttrs] = defineField('password')
+const passwordRef = useTemplateRef<any>('passwordRef')
 const router = useRouter()
 
 const toast = useToast()
 
-const onSubmit = handleSubmit(
-  values => {
-    onLoginClicked(values)
-  },
-  errors => {
-    console.log('error', errors, emailAttrs, passwordAttrs)
-  },
-)
+const onSubmit = handleSubmit(values => {
+  onLoginClicked(values)
+})
 
 const onLoginClicked = async ({ email, password }: Login) => {
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -65,6 +61,7 @@ const onLoginClicked = async ({ email, password }: Login) => {
               placeholder="Email"
               v-bind="emailAttrs"
               :invalid="errors.email !== undefined"
+              @keydown.enter.prevent="() => passwordRef.$el.focus()"
             />
           </InputGroup>
           <Message
@@ -80,6 +77,7 @@ const onLoginClicked = async ({ email, password }: Login) => {
               <i class="pi pi-lock"></i>
             </InputGroupAddon>
             <InputText
+              ref="passwordRef"
               v-model="password"
               type="password"
               placeholder="Password"
