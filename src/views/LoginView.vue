@@ -8,17 +8,34 @@ import Button from 'primevue/button'
 import { supabase } from '@/lib/superbaseClient'
 import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
+import { useForm } from 'vee-validate'
+import loginValidateSchema from '@/assets/validateSchema/login'
+import type { Login } from '@/assets/types/login'
+import Message from 'primevue/message'
 
-const username: Ref<string> = ref('')
-const password: Ref<string> = ref('')
+const { defineField, errors, handleSubmit } = useForm<Login>({
+  validationSchema: loginValidateSchema,
+})
+
+const [email, emailAttrs] = defineField('email')
+const [password, passwordAttrs] = defineField('password')
 const router = useRouter()
 
 const toast = useToast()
 
-const onLoginClicked = async () => {
+const onSubmit = handleSubmit(
+  values => {
+    onLoginClicked(values)
+  },
+  errors => {
+    console.log('error', errors, emailAttrs, passwordAttrs)
+  },
+)
+
+const onLoginClicked = async ({ email, password }: Login) => {
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: username.value,
-    password: password.value,
+    email,
+    password,
   })
   if (error) {
     toast.add({
@@ -36,37 +53,56 @@ const onLoginClicked = async () => {
 
 <template>
   <div id="Login-Wrapper">
-    <Card id="Login-Card" class="p-5">
-      <template #content>
-        <InputGroup>
-          <InputGroupAddon>
-            <i class="pi pi-user"></i>
-          </InputGroupAddon>
-          <InputText
-            v-model="username"
-            placeholder="Username"
-            @keydown.enter.prevent="onLoginClicked"
-          />
-        </InputGroup>
-        <InputGroup>
-          <InputGroupAddon>
-            <i class="pi pi-lock"></i>
-          </InputGroupAddon>
-          <InputText
-            v-model="password"
-            type="password"
-            placeholder="Password"
-            autofocus
-            @keydown.enter.prevent="onLoginClicked"
-          />
-        </InputGroup>
-      </template>
-      <template #footer>
-        <div class="flex">
-          <Button label="Login" class="w-full" @click="onLoginClicked" />
-        </div>
-      </template>
-    </Card>
+    <form @submit="onSubmit">
+      <Card id="Login-Card" class="p-5">
+        <template #content>
+          <InputGroup>
+            <InputGroupAddon>
+              <i class="pi pi-user"></i>
+            </InputGroupAddon>
+            <InputText
+              v-model="email"
+              placeholder="Email"
+              v-bind="emailAttrs"
+              :invalid="errors.email !== undefined"
+            />
+          </InputGroup>
+          <Message
+            v-if="errors.email !== undefined"
+            severity="error"
+            size="small"
+            variant="simple"
+          >
+            {{ errors.email }}
+          </Message>
+          <InputGroup>
+            <InputGroupAddon>
+              <i class="pi pi-lock"></i>
+            </InputGroupAddon>
+            <InputText
+              v-model="password"
+              type="password"
+              placeholder="Password"
+              v-bind="passwordAttrs"
+              :invalid="errors.password !== undefined"
+            />
+          </InputGroup>
+          <Message
+            v-if="errors.password !== undefined"
+            severity="error"
+            size="small"
+            variant="simple"
+          >
+            {{ errors.password }}
+          </Message>
+        </template>
+        <template #footer>
+          <div class="flex">
+            <Button label="Login" class="w-full" type="submit" />
+          </div>
+        </template>
+      </Card>
+    </form>
   </div>
 </template>
 
