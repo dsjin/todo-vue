@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Group } from '@/assets/types/group'
+import type { CreateGroup, Group } from '@/assets/types/group'
 import GroupCard from '@/components/GroupCard.vue'
 import GroupCardSkeleton from '@/components/GroupCardSkeleton.vue'
 import { supabase } from '@/lib/superbaseClient'
@@ -7,23 +7,34 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import { useToast } from 'primevue/usetoast'
-import { onMounted, ref, type Ref } from 'vue'
+import { onMounted, ref, watch, type Ref } from 'vue'
 import debounce from 'lodash.debounce'
+import { useForm } from 'vee-validate'
+import createGroupValidateSchema from '@/assets/validateSchema/group'
+import Message from 'primevue/message'
 
 enum PaginationState {
   INIT = 'init',
   NEXT_PAGE = 'nextPage',
 }
 
+const { defineField, errors, handleSubmit, resetForm } = useForm<CreateGroup>({
+  validationSchema: createGroupValidateSchema,
+})
+
 const toast = useToast()
-const scrollComponent: Ref<any> = ref(undefined)
 const createDialogVisible = ref(false)
-const newGroupName: Ref<string> = ref('')
+const [newGroupName, newGroupNameAttrs] = defineField('name')
 const groups: Ref<Group[]> = ref([])
 const busy: Ref<boolean> = ref(true)
 const createModalBusy: Ref<boolean> = ref(false)
 onMounted(() => {
   debouncedAssignGroupList()
+})
+watch(createDialogVisible, (value: boolean) => {
+  if (!value) {
+    resetForm()
+  }
 })
 const assignGroupList = async (
   state: PaginationState = PaginationState.INIT,
@@ -81,13 +92,16 @@ const fetchGroups = async (
       })
     : []
 }
-const createGroupClicked = async () => {
+const onCreateGroupSubmit = handleSubmit(values => {
+  createGroup(values)
+})
+const createGroup = async ({ name }: CreateGroup) => {
   createModalBusy.value = true
   try {
     const { data, error } = await supabase
       .from('groups')
       .upsert({
-        name: newGroupName.value,
+        name,
         user_id: (await supabase.auth.getUser()).data.user?.id,
       })
       .select('id, uuid, name, user_id, created_at, updated_at')
@@ -140,7 +154,7 @@ const editClicked = (id: number, newName: string) => {
 }
 </script>
 <template>
-  <div class="lg:px-60 px-10 py-5" ref="scrollComponent">
+  <div class="lg:px-60 px-10 py-5">
     <div class="flex flex-col w-full">
       <div class="flex justify-between items-center w-full mb-5">
         <h1 class="text-6xl">Group</h1>
@@ -188,30 +202,38 @@ const editClicked = (id: number, newName: string) => {
     <span class="text-surface-500 dark:text-surface-400 block mb-8">
       Create new group.
     </span>
-    <div class="flex items-center gap-4 mb-4">
-      <label for="group-name" class="font-semibold w-64">Name</label>
-      <InputText
-        v-model="newGroupName"
-        id="group-name"
-        class="flex-auto"
-        autocomplete="off"
-        :disabled="createModalBusy"
-      />
-    </div>
-    <div class="flex justify-end gap-2">
-      <Button
-        type="button"
-        label="Cancel"
-        severity="secondary"
-        @click="createDialogVisible = false"
-        :disabled="createModalBusy"
-      />
-      <Button
-        type="button"
-        label="Create"
-        @click="createGroupClicked"
-        :disabled="createModalBusy"
-      />
-    </div>
+    <form @submit="onCreateGroupSubmit">
+      <div class="flex items-center gap-4 mb-4">
+        <label for="group-name" class="font-semibold w-64">Name</label>
+        <InputText
+          v-model="newGroupName"
+          id="group-name"
+          class="flex-auto"
+          autocomplete="off"
+          :disabled="createModalBusy"
+          :invalid="errors.name !== undefined"
+          v-bind="newGroupNameAttrs"
+        />
+      </div>
+      <Message
+        v-if="errors.name !== undefined"
+        class="mb-4"
+        severity="error"
+        size="small"
+        variant="simple"
+      >
+        {{ errors.name }}
+      </Message>
+      <div class="flex justify-end gap-2">
+        <Button
+          type="button"
+          label="Cancel"
+          severity="secondary"
+          @click="createDialogVisible = false"
+          :disabled="createModalBusy"
+        />
+        <Button type="submit" label="Create" :disabled="createModalBusy" />
+      </div>
+    </form>
   </Dialog>
 </template>

@@ -6,3 +6,7 @@ export type Group = {
   createdAt: number
   updatedAt?: number
 }
+
+export type CreateGroup = {
+  name: string
+}

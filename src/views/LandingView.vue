@@ -47,7 +47,6 @@ onMounted(() => {
         Register
       </Button>
     </div>
-    <!-- <Button v-else @click="() => supabase.auth.signOut()"> Logout </Button> -->
   </div>
 </template>
 
