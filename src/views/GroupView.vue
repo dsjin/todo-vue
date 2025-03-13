@@ -92,7 +92,7 @@ const fetchGroups = async (
       })
     : []
 }
-const onCreateGroupSubmit = handleSubmit(values => {
+const onCreateGroupSubmit = handleSubmit((values: CreateGroup) => {
   createGroup(values)
 })
 const createGroup = async ({ name }: CreateGroup) => {

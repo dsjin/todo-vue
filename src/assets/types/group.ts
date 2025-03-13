@@ -10,3 +10,7 @@ export type Group = {
 export type CreateGroup = {
   name: string
 }
+
+export type EditGroup = {
+  name: string
+}

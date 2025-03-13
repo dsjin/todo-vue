@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { TaskItemDetail } from '@/assets/types/task'
+import type { CreateTask, TaskItemDetail } from '@/assets/types/task'
+import createTaskValidateSchema from '@/assets/validateSchema/task'
 import TodoItem from '@/components/TodoItem.vue'
 import TodoItemSkeleton from '@/components/TodoItemSkeleton.vue'
 import { supabase } from '@/lib/superbaseClient'
@@ -9,19 +10,24 @@ import Divider from 'primevue/divider'
 import InputGroup from 'primevue/inputgroup'
 import InputGroupAddon from 'primevue/inputgroupaddon'
 import InputText from 'primevue/inputtext'
+import Message from 'primevue/message'
 import Skeleton from 'primevue/skeleton'
 import { useToast } from 'primevue/usetoast'
+import { useForm } from 'vee-validate'
 import { computed, onMounted, ref, type ComputedRef, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
+const { defineField, errors, handleSubmit, resetForm } = useForm<CreateTask>({
+  validationSchema: createTaskValidateSchema,
+})
 const initBusy: Ref<boolean> = ref(true)
 const busy: Ref<boolean> = ref(false)
 const title: Ref<string> = ref('')
 const groupId: Ref<number> = ref(-1)
-const newTask: Ref<string> = ref('')
+const [newText, newTextAttrs] = defineField('text')
 const remainingTasks: ComputedRef<number> = computed((): number => {
   return taskItems.value.filter(value => !value.checked).length
 })
@@ -29,13 +35,16 @@ const totalTasks: ComputedRef<number> = computed((): number => {
   return taskItems.value.length
 })
 const taskItems: Ref<TaskItemDetail[]> = ref([])
-const addTaskClicked = async () => {
+const onAddTaskSubmit = handleSubmit((values: CreateTask) => {
+  addTaskClicked(values)
+})
+const addTaskClicked = async ({ text }: CreateTask) => {
   busy.value = true
   try {
     const { data, error } = await supabase
       .from('tasks')
       .upsert({
-        text: newTask.value,
+        text,
         group_id: groupId.value,
       })
       .select(`id,uuid,text,checked,created_at,updated_at`)
@@ -54,7 +63,8 @@ const addTaskClicked = async () => {
         updatedAt: data.updated_at,
       },
     ]
-    newTask.value = ''
+    newText.value = ''
+    resetForm()
   } catch (e: any) {
     toast.add({
       severity: 'error',
@@ -176,24 +186,35 @@ onMounted(async () => {
         </div>
       </template>
       <template #subtitle>
-        <InputGroup>
-          <InputGroupAddon>
-            <i class="pi pi-pencil"></i>
-          </InputGroupAddon>
-          <InputText
-            v-model="newTask"
-            placeholder="Input Task"
+        <form @submit="onAddTaskSubmit">
+          <InputGroup>
+            <InputGroupAddon>
+              <i class="pi pi-pencil"></i>
+            </InputGroupAddon>
+            <InputText
+              v-model="newText"
+              placeholder="Input Task"
+              size="small"
+              :disabled="busy || initBusy"
+              v-bind="newTextAttrs"
+            />
+            <Button
+              type="submit"
+              icon="pi pi-plus"
+              size="small"
+              :disabled="busy || initBusy"
+            />
+          </InputGroup>
+          <Message
+            v-if="errors.text !== undefined"
+            class="mt-2"
+            severity="error"
             size="small"
-            :disabled="busy || initBusy"
-            @keydown.enter.prevent="addTaskClicked"
-          />
-          <Button
-            icon="pi pi-plus"
-            size="small"
-            :disabled="busy || initBusy"
-            @click="addTaskClicked"
-          />
-        </InputGroup>
+            variant="simple"
+          >
+            {{ errors.text }}
+          </Message>
+        </form>
       </template>
       <template #content>
         <template v-if="initBusy">

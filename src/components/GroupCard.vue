@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import type { Group } from '@/assets/types/group'
+import type { EditGroup, Group } from '@/assets/types/group'
+import { editGroupValidateSchema } from '@/assets/validateSchema/group'
 import { supabase } from '@/lib/superbaseClient'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Menu from 'primevue/menu'
+import Message from 'primevue/message'
 import { useToast } from 'primevue/usetoast'
+import { useForm } from 'vee-validate'
 import { ref, type Ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -18,10 +21,15 @@ const emits = defineEmits<{
   onDeleted: [number]
   onEdited: [number, string]
 }>()
+
+const { defineField, errors, handleSubmit, resetForm } = useForm<EditGroup>({
+  validationSchema: editGroupValidateSchema,
+})
+
 const toast = useToast()
 const router = useRouter()
 const menu: Ref<InstanceType<typeof Menu> | undefined> = ref()
-const editName: Ref<string> = ref('')
+const [editName, editNameAttrs] = defineField('name')
 const modalBusy: Ref<boolean> = ref(false)
 const items = ref([
   {
@@ -45,18 +53,21 @@ const items = ref([
     ],
   },
 ])
+const onEditGroupSubmit = handleSubmit((values: EditGroup) => {
+  editClicked(values)
+})
 const editDialogVisible = ref(false)
 const deleteDialogVisible = ref(false)
 const toggleMenu = (event: MouseEvent) => {
   menu.value?.toggle(event)
 }
-const editClicked = async () => {
+const editClicked = async ({ name }: EditGroup) => {
   modalBusy.value = true
   try {
     const { error } = await supabase
       .from('groups')
       .update({
-        name: editName.value,
+        name,
       })
       .eq('id', props.value.id)
     if (error) {
@@ -142,31 +153,38 @@ const deleteClicked = async () => {
     <span class="text-surface-500 dark:text-surface-400 block mb-8">
       Edit group information.
     </span>
-    <div class="flex items-center gap-4 mb-4">
-      <label for="group-name" class="font-semibold w-64">Name</label>
-      <InputText
-        v-model="editName"
-        id="group-name"
-        class="flex-auto"
-        autocomplete="off"
-        :disabled="modalBusy"
-      />
-    </div>
-    <div class="flex justify-end gap-2">
-      <Button
-        type="button"
-        label="Cancel"
-        severity="secondary"
-        @click="editDialogVisible = false"
-        :disabled="modalBusy"
-      />
-      <Button
-        type="button"
-        label="Save"
-        @click="editClicked"
-        :disabled="modalBusy"
-      />
-    </div>
+    <form @submit="onEditGroupSubmit">
+      <div class="flex items-center gap-4 mb-4">
+        <label for="group-name" class="font-semibold w-64">Name</label>
+        <InputText
+          v-model="editName"
+          id="group-name"
+          class="flex-auto"
+          autocomplete="off"
+          :disabled="modalBusy"
+          v-bind="editNameAttrs"
+        />
+      </div>
+      <Message
+        v-if="errors.name !== undefined"
+        class="mb-4"
+        severity="error"
+        size="small"
+        variant="simple"
+      >
+        {{ errors.name }}
+      </Message>
+      <div class="flex justify-end gap-2">
+        <Button
+          type="button"
+          label="Cancel"
+          severity="secondary"
+          @click="editDialogVisible = false"
+          :disabled="modalBusy"
+        />
+        <Button type="submit" label="Create" :disabled="modalBusy" />
+      </div>
+    </form>
   </Dialog>
   <Dialog
     v-model:visible="deleteDialogVisible"

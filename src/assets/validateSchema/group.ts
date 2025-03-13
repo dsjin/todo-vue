@@ -4,4 +4,11 @@ export const createGroupValidateSchema = yup.object().shape({
   name: yup.string().required('Name is required'),
 })
 
-export default createGroupValidateSchema
+export const editGroupValidateSchema = yup.object().shape({
+  name: yup.string().required('Name is required'),
+})
+
+export default {
+  createGroupValidateSchema,
+  editGroupValidateSchema,
+}

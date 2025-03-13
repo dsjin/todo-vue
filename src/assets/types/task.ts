@@ -7,6 +7,6 @@ export type TaskItemDetail = {
   updatedAt?: number
 }
 
-export type createTask = {
+export type CreateTask = {
   text: string
 }
