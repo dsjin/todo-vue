@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CreateTask, TaskItemDetail } from '@/assets/types/task'
+import { sortTask } from '@/assets/utils/sort'
 import createTaskValidateSchema from '@/assets/validateSchema/task'
 import TodoItem from '@/components/TodoItem.vue'
 import TodoItemSkeleton from '@/components/TodoItemSkeleton.vue'
@@ -75,8 +76,17 @@ const addTaskClicked = async ({ text }: CreateTask) => {
   }
   busy.value = false
 }
+const editedTask = () => {
+  taskItems.value = [...sortTask(taskItems.value)]
+  toast.add({
+    severity: 'info',
+    summary: 'Confirmed',
+    detail: 'Record updated',
+    life: 3000,
+  })
+}
 const deleteTaskClicked = (id: number) => {
-  taskItems.value = taskItems.value.filter(value => value.id !== id)
+  taskItems.value = sortTask(taskItems.value.filter(value => value.id !== id))
   toast.add({
     severity: 'info',
     summary: 'Confirmed',
@@ -107,6 +117,10 @@ onMounted(async () => {
     `,
     )
     .eq('group_id', groupData.id)
+    .order('checked', {
+      ascending: false,
+    })
+    .order('id')
   title.value = groupData.name
   groupId.value = groupData.id
   taskItems.value = taskData
@@ -232,6 +246,7 @@ onMounted(async () => {
             class="pb-1"
             v-model:disabled="busy"
             @on-deleted="deleteTaskClicked"
+            @on-check-update="editedTask"
           />
         </template>
       </template>
