@@ -14,6 +14,7 @@ const checked = defineModel<boolean>('checked')
 const disabled = defineModel<boolean>('disabled')
 const props = defineProps<Props>()
 const emits = defineEmits<{
+  onCheckUpdate: []
   onDeleted: [number]
 }>()
 const toast = useToast()
@@ -31,6 +32,7 @@ const updateCheck = async (value: boolean) => {
     if (error) {
       throw new Error(error.message)
     }
+    emits('onCheckUpdate')
   } catch (e: any) {
     checked.value = !checked.value
     toast.add({
