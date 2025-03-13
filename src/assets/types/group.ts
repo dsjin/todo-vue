@@ -6,3 +6,11 @@ export type Group = {
   createdAt: number
   updatedAt?: number
 }
+
+export type CreateGroup = {
+  name: string
+}
+
+export type EditGroup = {
+  name: string
+}
