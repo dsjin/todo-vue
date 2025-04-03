@@ -10,8 +10,8 @@ import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch, type Ref } from 'vue'
 import debounce from 'lodash.debounce'
 import { useForm } from 'vee-validate'
-import createGroupValidateSchema from '@/assets/validateSchema/group'
 import Message from 'primevue/message'
+import { createGroupValidateSchema } from '@/assets/validateSchema/group'
 
 enum PaginationState {
   INIT = 'init',
@@ -98,7 +98,7 @@ const onCreateGroupSubmit = handleSubmit((values: CreateGroup) => {
 const createGroup = async ({ name }: CreateGroup) => {
   createModalBusy.value = true
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('groups')
       .upsert({
         name,
@@ -109,19 +109,14 @@ const createGroup = async ({ name }: CreateGroup) => {
     if (error) {
       throw new Error(error.message)
     }
-    groups.value = [
-      ...groups.value,
-      {
-        id: data.id,
-        uuid: data.uuid,
-        name: data.name,
-        userId: data.user_id,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-      },
-    ]
     createDialogVisible.value = false
     newGroupName.value = ''
+    toast.add({
+      severity: 'info',
+      summary: 'Confirmed',
+      detail: 'Record created',
+      life: 3000,
+    })
   } catch (e: any) {
     toast.add({
       severity: 'error',
