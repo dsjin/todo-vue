@@ -172,7 +172,7 @@ const editClicked = (id: number, newName: string) => {
       <template v-if="busy">
         <GroupCardSkeleton />
       </template>
-      <template v-if="!busy && groups.length > 0">
+      <template v-if="!busy">
         <Button
           label="Load more groups"
           @click="() => debouncedAssignGroupList(PaginationState.NEXT_PAGE)"
