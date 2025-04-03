@@ -22,8 +22,8 @@ onMounted(() => {
 
 <template>
   <div id="LandingPage">
-    <h1>TODO LIST</h1>
-    <div class="flex">
+    <h1 class="text-8xl mb-5">TODO LIST</h1>
+    <div class="flex w-full gap-10 justify-center">
       <Button
         v-if="!userInfo"
         @click="
