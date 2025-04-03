@@ -96,6 +96,12 @@ const deleteClicked = async () => {
       throw new Error(error.message)
     }
     emits('onDeleted', props.value.id)
+    toast.add({
+      severity: 'info',
+      summary: 'Confirmed',
+      detail: 'Record edited',
+      life: 3000,
+    })
   } catch (e: any) {
     toast.add({
       severity: 'error',
@@ -182,7 +188,7 @@ const deleteClicked = async () => {
           @click="editDialogVisible = false"
           :disabled="modalBusy"
         />
-        <Button type="submit" label="Create" :disabled="modalBusy" />
+        <Button type="submit" label="Edit" :disabled="modalBusy" />
       </div>
     </form>
   </Dialog>
